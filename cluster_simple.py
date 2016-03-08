@@ -210,7 +210,7 @@ if __name__ == "__main__":
     assert 'id_cluster' not in input_fields
 
     if args.output_fields is not None:
-        output_fields = args.fields.split(',')
+        output_fields = args.output_fields.split(',')
     else:
         output_fields = ['id_cluster'] + input_fields
 
