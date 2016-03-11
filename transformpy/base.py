@@ -4,7 +4,8 @@ import inspect
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 __all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
-            'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe']
+            'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
+            'FlattenPipe']
 
 class Transform(object):
 
@@ -49,6 +50,9 @@ class Transform(object):
     def nested(self, nested, *args, **kwargs):
         obj = NestedPipe(self.__ins(nested, TransformType.MAP, args, kwargs))
         return self.__ins_add(self._pipeline, obj, TransformType.NESTED, args, kwargs)
+
+    def flatten(self):
+        return self.__ins_add(self._pipeline, FlattenPipe(), TransformType.MAP, (), {})
 
     def output(self, outputter, *args, **kwargs):
         return self.__ins_add(self._sinks, outputter, TransformType.SINK, args, kwargs)
@@ -169,3 +173,17 @@ class TeePipe(TransformPipe):
     @property
     def type(self):
         return TransformType.TEE
+
+class FlattenPipe(TransformPipe):
+
+    def init(self):
+        pass
+
+    def apply(self, data):
+        for datum in data:
+            for d in datum:
+                yield d
+
+    @property
+    def type(self):
+        return TransformType.MAP
