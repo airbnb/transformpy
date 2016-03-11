@@ -38,7 +38,7 @@ Transform()\
 
 In the above example, two pipes have been used: HiveToDictInput and
 DictToHiveOutput; with types of `TransformType.SOURCE` and `TransformType.SINK`
-respectively. There are currently seven different types of pipes (though the differences
+respectively. There are currently eight different types of pipes (though the differences
 are largely semantic):
  - `TransformType.SOURCE`: There can be at most one input pipe per pipeline, though it is just a `TransformType.MAP` by another name.
  - `TransformType.SINK`: The sink is the output. A pipeline can have arbitrary many outputs, but they will always be called at the end of the pipeline. To use an output sink in the middle of a pipeline (for debug or verification purposes, use `TransformType.TEE`). If no sinks are provided in the pipeline, a generator object is returned; allowing one to chain the transform.
@@ -47,6 +47,8 @@ are largely semantic):
  - `TransformType.AGGREGATE`: This allows one to aggregate over clusters, in any way that seems fit. Output from the pipe should be single instances (they de-cluster clusters with whatever aggregation is appropriate).
  - `TransformType.TEE`: This is a no-op pipe that passes the contents of the pipe to a `Transform.SINK` object as well as passing the contents forward into the pipeline.
  - `TransformType.NESTED` : Applies a specified `TransformPipe` or `Transform` object to data one level nested in the input stream. This is useful when performing sub-transforms on clusters.
+ - `TransformType.FANOUT` : Forks the pipe into arbitrarily many subpipes, which is useful if there are different pipelines to run on subsets of input data.
+ - `TransformType.FANIN` : Merges multiple pipeline results into one. This is similar to aggregation, but more about merging results than summing over rows.
 
 These types are respective added to the pipeline using the following methods of
 `Transform`:
@@ -57,6 +59,8 @@ These types are respective added to the pipeline using the following methods of
  - `aggregate` for `TransformType.AGGREGATE`
  - `tee` for `TransformType.TEE`
  - `nested` for `TransformType.NESTED`
+ - `fanout` for `TransformType.FANOUT`
+ - `fanin` for `TransformType.FANIN`
 
 All of these methods accept a function object (in which case they are
 wrapped by a `FunctionWrapperPipe` object), a class instance of the specified type,
@@ -85,6 +89,10 @@ The pipes in this section are specified for completeness. It will not in general
 
 ### transformpy.pipes.clustering ###
  - `SimpleClusteringPipe` : clusters rows with the same key into a list of rows. It assumes that rows are sorted by the appropriate key. Clusters can then be acted upon by maps and/or aggregations. To remove nesting, use the `Transform.flatten` method.
+
+### transformpy.pipe.field ###
+ - `FieldFilterPipe` : maps dictionaries having many keys to dictionaries having only the keys specified. The keys *must* be present in the original dictionary.
+ - `FieldMergePipe` : a fanin pipe that merges dictionaries. Dictionaries are assumed to hold no conflicting information. In the event hat conflicting information is present, the values in dictionaries with higher index are chosen.
 
 ## Defining Custom Pipes ##
 The chances are you will want (and need) to define your own logic. Doing so is very easy in TransformPy. You can either define a function, and refer to it in the pipeline, or define a class (which will allow you to be smarter with memory, etc.). To use a function, simply pass it to the appropriate method of `Transform`, as described above.

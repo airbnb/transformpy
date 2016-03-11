@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 
 __all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
             'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
-            'FlattenPipe']
+            'FlattenPipe', 'FanOutPipe', 'NoOpPipe']
 
 class Transform(object):
 
@@ -54,6 +54,12 @@ class Transform(object):
     def flatten(self):
         return self.__ins_add(self._pipeline, FlattenPipe(), TransformType.MAP, (), {})
 
+    def fanout(self, *pipes):
+        return self.__ins_add(self._pipeline, FanOutPipe, TransformType.FANOUT, pipes, {})
+
+    def fanin(self, fanin, *args, **kwargs):
+        return self.__ins_add(self._pipeline, fanin, TransformType.FANIN, args, kwargs)
+
     def output(self, outputter, *args, **kwargs):
         return self.__ins_add(self._sinks, outputter, TransformType.SINK, args, kwargs)
 
@@ -77,6 +83,8 @@ class TransformType(object):
     CLUSTER = 'cluster'
     AGGREGATE = 'aggregate'
     NESTED = 'nested'
+    FANOUT = 'fanout'
+    FANIN = 'fanin'
 
 class TransformPipe(object):
     __metaclass__ = ABCMeta
@@ -183,6 +191,38 @@ class FlattenPipe(TransformPipe):
         for datum in data:
             for d in datum:
                 yield d
+
+    @property
+    def type(self):
+        return TransformType.MAP
+
+class FanOutPipe(TransformPipe):
+
+    def init(self, *pipes):
+        for pipe in pipes:
+            assert isinstance(pipe, (Transform,TransformPipe)), "Pipes passed to FanOutPipe must be instances of `TransformPipe`."
+        self.pipes = pipes
+
+    def __milk_pipe(self, pipe):
+        r = list(pipe)
+        assert len(r) == 1, "Fanout pipes must be bijective to input."
+        return r[0]
+
+    def apply(self, data):
+        for datum in data:
+            yield [self.__milk_pipe(p.apply([datum])) for p in self.pipes]
+
+    @property
+    def type(self):
+        return TransformType.FANOUT
+
+class NoOpPipe(TransformPipe):
+
+    def init(self):
+        pass
+
+    def apply(self, data):
+        return data
 
     @property
     def type(self):
