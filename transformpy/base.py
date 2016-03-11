@@ -3,8 +3,8 @@ from __future__ import print_function
 import inspect
 from abc import ABCMeta, abstractproperty, abstractmethod
 
-__all__ = ['Transform', 'TransformPipe', 'SourcePipe', 'SinkPipe',
-            'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe']
+__all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
+            'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe']
 
 class Transform(object):
 
@@ -12,7 +12,7 @@ class Transform(object):
         self._pipeline = []
         self._sinks = []
 
-    def __ins_add(self, list, obj, type, args, kwargs):
+    def __ins(self, obj, type, args, kwargs):
         if inspect.isclass(obj):
             obj = obj(*args, **kwargs)
         elif inspect.isfunction(obj):
@@ -20,7 +20,11 @@ class Transform(object):
                 obj = FunctionWrapperPipe(obj, type)
             else:
                 obj = FunctionWrapperSinkPipe(obj, type)
-        assert obj.type is None or obj.type == type, "Object %s is not of the right type." % obj
+        return obj
+
+    def __ins_add(self, list, obj, type, args, kwargs):
+        obj = self.__ins(obj, type, args, kwargs)
+        assert isinstance(obj, Transform) or obj.type is None or obj.type == type, "Object %s (of type %s) is not of the right type (%s)." % (obj, obj.type, type)
         list.append(obj)
         return self
 
@@ -42,19 +46,24 @@ class Transform(object):
             tee = TeePipe(tee)
         return self.__ins_add(self._pipeline, tee, TransformType.TEE, args, kwargs)
 
+    def nested(self, nested, *args, **kwargs):
+        obj = NestedPipe(self.__ins(nested, TransformType.MAP, args, kwargs))
+        return self.__ins_add(self._pipeline, obj, TransformType.NESTED, args, kwargs)
+
     def output(self, outputter, *args, **kwargs):
         return self.__ins_add(self._sinks, outputter, TransformType.SINK, args, kwargs)
 
     def apply(self, data):
-        assert len(self._sinks) > 0, "This transform does not output anything!"
-
         r = data
         for tp in self._pipeline:
             r = tp.apply(r)
 
-        for output in r:
-            for outputter in self._sinks:
-                outputter.apply(output)
+        if len(self._sinks) > 0:
+            for output in r:
+                for outputter in self._sinks:
+                    outputter.apply(output)
+        else:
+            return r
 
 class TransformType(object):
     SOURCE = 'source'
@@ -63,6 +72,7 @@ class TransformType(object):
     MAP = 'map'
     CLUSTER = 'cluster'
     AGGREGATE = 'aggregate'
+    NESTED = 'nested'
 
 class TransformPipe(object):
     __metaclass__ = ABCMeta
@@ -98,6 +108,19 @@ class SinkPipe(TransformPipe):
     def type(self):
         return 'sink'
 
+class NestedPipe(TransformPipe):
+
+    def init(self, pipe):
+        self.pipe = pipe
+
+    def apply(self, data):
+        for datum in data:
+            yield list(self.pipe.apply(datum))
+
+    @property
+    def type(self):
+        return TransformType.NESTED
+
 class FunctionWrapperPipe(TransformPipe):
 
     def init(self, function, type=None):
@@ -106,8 +129,8 @@ class FunctionWrapperPipe(TransformPipe):
         self._type = type
 
     def apply(self, data):
-        for result in self.__function(data):
-            yield result
+        for datum in data:
+            yield self.__function(datum)
 
     @property
     def type(self):
@@ -145,4 +168,4 @@ class TeePipe(TransformPipe):
 
     @property
     def type(self):
-        return 'tee'
+        return TransformType.TEE
