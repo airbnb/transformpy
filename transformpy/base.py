@@ -71,7 +71,7 @@ class Transform(object):
         if len(self._sinks) > 0:
             for output in r:
                 for outputter in self._sinks:
-                    outputter.apply(output)
+                    outputter.apply([output])
         else:
             return r
 
@@ -175,7 +175,7 @@ class TeePipe(TransformPipe):
             if self.is_function:
                 self.__outputter(row)
             else:
-                self.__outputter.apply(row)
+                self.__outputter.apply([row])
             yield row
 
     @property

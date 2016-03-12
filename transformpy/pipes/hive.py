@@ -17,10 +17,11 @@ class DictToHiveOutput(SinkPipe):
     def init(self, fields):
         self.fields = fields
 
-    def apply(self, row):
-        if type(row) == list:
-            for r in row:
-                self.apply(r)
-        else:
-            output = [ str(row[k]) for k in self.fields ]
-            print( '\t'.join( output ) )
+    def apply(self, data):
+        for row in data:
+            if type(row) == list:
+                for r in row:
+                    self.apply(r)
+            else:
+                output = [ str(row[k]) for k in self.fields ]
+                print( '\t'.join( output ) )
