@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name = "transformpy",
-    version = "0.1",
+    version = "0.2",
     author = "Matthew Wardrop",
     author_email = "matthew.wardrop@airbnb.com",
     description = ("A general purpose python ETL/pipeline utility library, for use especially with Hive Streaming."),
