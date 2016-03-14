@@ -44,7 +44,7 @@ class Transform(object):
 
     def tee(self, tee, *args, **kwargs):
         if not isinstance(tee, TeePipe):
-            tee = TeePipe(tee)
+            tee = TeePipe(tee, *args, **kwargs)
         return self.__ins_add(self._pipeline, tee, TransformType.TEE, args, kwargs)
 
     def nested(self, nested, *args, **kwargs):
@@ -164,10 +164,12 @@ class FunctionWrapperSinkPipe(TransformPipe):
 
 class TeePipe(TransformPipe):
 
-    def init(self, outputter):
+    def init(self, outputter, *args, **kwargs):
         self.is_function = inspect.isfunction(outputter)
         if not self.is_function:
-            assert outputter.type == 'output'
+            if inspect.isclass(outputter):
+                outputter = outputter(*args, **kwargs)
+            assert outputter.type == TransformType.SINK
         self.__outputter = outputter
 
     def apply(self, data):

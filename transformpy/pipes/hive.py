@@ -19,9 +19,6 @@ class DictToHiveOutput(SinkPipe):
 
     def apply(self, data):
         for row in data:
-            if type(row) == list:
-                for r in row:
-                    self.apply(r)
-            else:
-                output = [ str(row[k]) for k in self.fields ]
-                print( '\t'.join( output ) )
+            assert isinstance(row, dict), "DictToHiveOutput only parses dictionaries."
+            output = [ str(row[k]) for k in self.fields ]
+            print( '\t'.join( output ) )
