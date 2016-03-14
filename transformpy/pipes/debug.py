@@ -1,12 +1,12 @@
 from __future__ import print_function
 
-__all__ = ['DebugPipe']
+__all__ = ['DebugSink']
 
 import sys
 
 from ..base import TransformPipe, SinkPipe
 
-class DebugPipe(SinkPipe):
+class DebugSink(SinkPipe):
 
     def init(self, file=None):
         self.output_file = file

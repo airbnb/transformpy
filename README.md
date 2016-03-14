@@ -92,11 +92,15 @@ The pipes in this section are specified for completeness. It will not in general
  - `DictToHiveOutput` : writes dictionary objects (or lists of dictionary objects) to standard out as a tab separated csv of the HIVE format. The fields (and order of those fields) are specfied according to the passed `fields` parameter.
 
 ### transformpy.pipes.clustering ###
- - `SimpleClusteringPipe` : clusters rows with the same key into a list of rows. It assumes that rows are sorted by the appropriate key. Clusters can then be acted upon by maps and/or aggregations. To remove nesting, use the `Transform.flatten` method.
+ - `SimpleClusteringPipe` : clusters rows with the same key into a list of rows (or one level of nesting). It assumes that rows are sorted by the appropriate key. Clusters can then be acted upon by maps and/or aggregations. To remove nesting, use the `Transform.unnest` method.
+ - `RangeClusteringPipe` : clusters rows based on the overlap of ranges defined by min/max fields. Other comments are as above.
 
 ### transformpy.pipe.field ###
  - `FieldFilterPipe` : maps dictionaries having many keys to dictionaries having only the keys specified. The keys *must* be present in the original dictionary.
  - `FieldMergePipe` : a fanin pipe that merges dictionaries. Dictionaries are assumed to hold no conflicting information. In the event hat conflicting information is present, the values in dictionaries with higher index are chosen.
+
+### transformpy.pipe.debug ###
+ - `DebugSink` : this sink prints each item that passes through the pipe to stderr (coloured if possible), or to a specified file. Use as: `transform_instance.tee(DebugSink)`.
 
 ## Defining Custom Pipes ##
 The chances are you will want (and need) to define your own logic. Doing so is very easy in TransformPy. You can either define a function, and refer to it in the pipeline, or define a class (which will allow you to be smarter with memory, etc.). To use a function, simply pass it to the appropriate method of `Transform`, as described above.
