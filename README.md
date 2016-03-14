@@ -71,6 +71,10 @@ are valid (and equivalent):
  - `Transform().map(SimpleMapper('test'))`
  - `Transform().map(simple_mapper_instance)`
 
+There are a couple of special methods on `Transform` objects, including:
+ - `unnest` : Which suppresses one level of nesting (using an `UnnestPipe`).
+ - `apply` : Which applies the transform pipeline to an iterable dataset.
+
 ## Pipes defined by TransformPy ##
 ** Please note, these will grow over time; small though in number they be now.
 Please do contribute your pipes if you think they are useful. **
@@ -81,7 +85,7 @@ The pipes in this section are specified for completeness. It will not in general
  - `FunctionWrapperSinkPipe` : Wraps around functions to integrate them into the TransformPy pipeline as a sink.
  - `TeePipe` : Wraps around functions and `SinkPipe` subclasses to inspect the contents of a pipe without disturbing it. **This is very useful for debugging! Use as `Transform.tee`.**
  - `NestedPipe` : This applies a `TransformPipe` or `Transform` object to data one level deeper. This is useful when using clustering.
- - `FlattenPipe` : Suppresses one level of nesting. Useful if clustering/aggregation requires manual suppression of nesting.
+ - `UnnestPipe` : Suppresses one level of nesting. Useful if clustering/aggregation requires manual suppression of nesting.
 
 ### transformpy.pipes.hive ###
  - `HiveToDictInput` : reads in tab separated csv files in the HIVE format, and outputs a dictionary object per row. Fields are named according to the passed `fields` parameter.

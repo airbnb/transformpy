@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 
 __all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
             'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
-            'FlattenPipe', 'FanOutPipe', 'NoOpPipe']
+            'UnnestPipe', 'FanOutPipe', 'NoOpPipe']
 
 class Transform(object):
 
@@ -51,8 +51,8 @@ class Transform(object):
         obj = NestedPipe(self.__ins(nested, TransformType.MAP, args, kwargs))
         return self.__ins_add(self._pipeline, obj, TransformType.NESTED, args, kwargs)
 
-    def flatten(self):
-        return self.__ins_add(self._pipeline, FlattenPipe(), TransformType.MAP, (), {})
+    def unnest(self):
+        return self.__ins_add(self._pipeline, UnnestPipe(), TransformType.MAP, (), {})
 
     def fanout(self, *pipes):
         return self.__ins_add(self._pipeline, FanOutPipe, TransformType.FANOUT, pipes, {})
@@ -184,7 +184,7 @@ class TeePipe(TransformPipe):
     def type(self):
         return TransformType.TEE
 
-class FlattenPipe(TransformPipe):
+class UnnestPipe(TransformPipe):
 
     def init(self):
         pass
@@ -202,7 +202,7 @@ class FanOutPipe(TransformPipe):
 
     def init(self, *pipes):
         for pipe in pipes:
-            assert isinstance(pipe, (Transform,TransformPipe)), "Pipes passed to FanOutPipe must be instances of `TransformPipe`."
+            assert isinstance(pipe, (Transform, TransformPipe)), "Pipes passed to FanOutPipe must be instances of `TransformPipe`."
         self.pipes = pipes
 
     def __milk_pipe(self, pipe):
