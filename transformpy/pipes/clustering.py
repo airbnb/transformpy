@@ -69,7 +69,7 @@ class RangeClusteringPipe(TransformPipe):
             # Assert that data is sorted by min key. May be used later to optimise
             # this method.
             if last is not None:
-                assert last <= entry[self.min_field], "RangeClusteringPipe requires that data be sorted by min_field."
+                assert last <= entry[self.min_field], "RangeClusteringPipe requires that data be sorted by min_field. %s=%s was out of order." % (self.min_field, entry[self.min_field])
             last = entry[self.min_field]
 
             self._add_to_clusters(clusters, entry[self.min_field], entry[self.max_field], row)

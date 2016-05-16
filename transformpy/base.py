@@ -1,4 +1,5 @@
 from __future__ import print_function
+from future.utils import with_metaclass
 
 import inspect
 from abc import ABCMeta, abstractproperty, abstractmethod
@@ -86,8 +87,7 @@ class TransformType(object):
     FANOUT = 'fanout'
     FANIN = 'fanin'
 
-class TransformPipe(object):
-    __metaclass__ = ABCMeta
+class TransformPipe(with_metaclass(ABCMeta, object)):
 
     def __init__(self, *args, **kwargs):
         self.init(*args, **kwargs)

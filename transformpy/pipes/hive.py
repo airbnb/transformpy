@@ -1,8 +1,9 @@
-__all__ = ['HiveToDictInput', 'DictToHiveOutput']
-
+from __future__ import absolute_import
+from builtins import str
 import csv
-
 from ..base import TransformPipe, SourcePipe, SinkPipe
+
+__all__ = ['HiveToDictInput', 'DictToHiveOutput']
 
 class HiveToDictInput(SourcePipe):
 

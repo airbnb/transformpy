@@ -1,6 +1,6 @@
 # TransformPy #
 
-`transformpy` is a Python 2 module for doing transforms on "streams" of data.
+`transformpy` is a Python 2/3 module for doing transforms on "streams" of data.
 The transforms can be applied to any python iterable object, and so can be used
 for continuous real_time streams or static streams (such as from a file). It
 is designed in such a manner that it uses very little memory (unless necessary
