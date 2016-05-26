@@ -5,8 +5,9 @@ import inspect
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 __all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
-            'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
-            'UnnestPipe', 'FanOutPipe', 'NoOpPipe']
+           'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
+           'UnnestPipe', 'FanOutPipe', 'NoOpPipe']
+
 
 class Transform(object):
 
@@ -76,6 +77,7 @@ class Transform(object):
         else:
             return r
 
+
 class TransformType(object):
     SOURCE = 'source'
     SINK = 'sink'
@@ -86,6 +88,7 @@ class TransformType(object):
     NESTED = 'nested'
     FANOUT = 'fanout'
     FANIN = 'fanin'
+
 
 class TransformPipe(with_metaclass(ABCMeta, object)):
 
@@ -108,17 +111,20 @@ class TransformPipe(with_metaclass(ABCMeta, object)):
     def type(self):
         pass
 
+
 class SourcePipe(TransformPipe):
 
     @property
     def type(self):
         return 'source'
 
+
 class SinkPipe(TransformPipe):
 
     @property
     def type(self):
         return 'sink'
+
 
 class NestedPipe(TransformPipe):
 
@@ -132,6 +138,7 @@ class NestedPipe(TransformPipe):
     @property
     def type(self):
         return TransformType.NESTED
+
 
 class FunctionWrapperPipe(TransformPipe):
 
@@ -148,6 +155,7 @@ class FunctionWrapperPipe(TransformPipe):
     def type(self):
         return self._type
 
+
 class FunctionWrapperSinkPipe(TransformPipe):
 
     def init(self, function, type=None):
@@ -161,6 +169,7 @@ class FunctionWrapperSinkPipe(TransformPipe):
     @property
     def type(self):
         return self._type
+
 
 class TeePipe(TransformPipe):
 
@@ -184,6 +193,7 @@ class TeePipe(TransformPipe):
     def type(self):
         return TransformType.TEE
 
+
 class UnnestPipe(TransformPipe):
 
     def init(self):
@@ -197,6 +207,7 @@ class UnnestPipe(TransformPipe):
     @property
     def type(self):
         return TransformType.MAP
+
 
 class FanOutPipe(TransformPipe):
 
@@ -217,6 +228,7 @@ class FanOutPipe(TransformPipe):
     @property
     def type(self):
         return TransformType.FANOUT
+
 
 class NoOpPipe(TransformPipe):
 

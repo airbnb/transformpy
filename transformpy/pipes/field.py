@@ -1,6 +1,7 @@
+from ..base import TransformPipe, TransformType
+
 __all__ = ['FieldFilterPipe', 'FieldMergePipe']
 
-from ..base import TransformPipe, TransformType
 
 class FieldFilterPipe(TransformPipe):
 
@@ -14,6 +15,7 @@ class FieldFilterPipe(TransformPipe):
     @property
     def type(self):
         return TransformType.MAP
+
 
 class FieldMergePipe(TransformPipe):
 

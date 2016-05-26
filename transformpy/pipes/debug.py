@@ -1,10 +1,9 @@
 from __future__ import print_function
+import sys
+from ..base import TransformPipe, SinkPipe
 
 __all__ = ['DebugSink']
 
-import sys
-
-from ..base import TransformPipe, SinkPipe
 
 class DebugSink(SinkPipe):
 
