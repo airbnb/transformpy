@@ -50,7 +50,7 @@ class RangeClusteringPipe(TransformPipe):
 
         def merge(self, other):
             self.start = min(self.start, other.start)
-            self.end = min(self.end, other.end)
+            self.end = max(self.end, other.end)
             self.rows.extend(other.rows)
 
     def init(self, min_field, max_field, cluster_on=None):
