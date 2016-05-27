@@ -19,7 +19,7 @@ class SimpleClusteringPipe(TransformPipe):
                     yield cur_data
                 cur_data = []
                 cur_group = row[self.field]
-                assert cur_group not in self.seen_groups, "SimpleClusteringPipe assumes that data is sorted by key. %s=%s was out of order." % (self.field, cur_group)
+                assert cur_group not in self.seen_groups, "SimpleClusteringPipe assumes that data is sorted by key. %s=%s was out of order (followed %s)." % (self.field, cur_group, last)
                 self.seen_groups[cur_group] = True
             cur_data.append(row)
         yield cur_data
@@ -72,7 +72,7 @@ class RangeClusteringPipe(TransformPipe):
             # Assert that data is sorted by min key. May be used later to optimise
             # this method.
             if last is not None:
-                assert last <= entry[self.min_field], "RangeClusteringPipe requires that data be sorted by min_field. %s=%s was out of order." % (self.min_field, entry[self.min_field])
+                assert last <= entry[self.min_field], "RangeClusteringPipe requires that data be sorted by min_field. %s=%s was out of order (followed %s)." % (self.min_field, entry[self.min_field], last)
             last = entry[self.min_field]
 
             self._add_to_clusters(clusters, entry[self.min_field], entry[self.max_field], row)
