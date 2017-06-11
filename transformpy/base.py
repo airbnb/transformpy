@@ -18,7 +18,7 @@ class Transform(object):
     def __ins(self, obj, type, args, kwargs):
         if inspect.isclass(obj):
             obj = obj(*args, **kwargs)
-        elif inspect.isfunction(obj):
+        elif not isinstance(obj, TransformPipe) and hasattr(obj, '__call__'):
             if type is not 'output':
                 obj = FunctionWrapperPipe(obj, type)
             else:
