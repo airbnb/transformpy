@@ -1,8 +1,11 @@
 from __future__ import print_function
 from future.utils import with_metaclass
 
+import logging
 import inspect
 from abc import ABCMeta, abstractproperty, abstractmethod
+from itertools import tee
+
 
 __all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
            'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
@@ -68,9 +71,40 @@ class Transform(object):
     def sort(self, **kwargs):
         return self.__ins_add(self._pipeline, SortPipe, TransformType.SORT, (), kwargs)
 
+    def __check_pipeline(self):
+        '''
+        Ensure that pipeline runnable and behaves as expected. Currently checks
+        that:
+            - Clustering operations are followed by a nested transform or an
+              aggregation. If not, an explicity generator -> list mapping operation
+              is added to avoid subsequent operations being confused by the
+              generator of generators that clustering operations yield.
+            - If the last transformation is a clustering operation, that the
+              same explicity mapping is done to ensure sensible output from the
+              transform pipe.
+        '''
+        def pairwise(iterable):
+            "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+            a, b = tee(iterable)
+            next(b, None)
+            return zip(a, b)
+
+        pipeline = self._pipeline[:1]
+
+        for a, b in pairwise(self._pipeline):
+            if a.type == TransformType.CLUSTER and b.type not in (TransformType.NESTED, TransformType.AGGREGATE):
+                logging.warning("A non-nested non-aggregation transform has been used after a clustering pipe. Adding a potentially memory inefficient pipe segment to convert cluster generator to list.")
+                pipeline.append(self.__ins(lambda x: list(x), TransformType.MAP, [], {}))
+            pipeline.append(b)
+
+        if pipeline[-1].type == TransformType.CLUSTER:
+            pipeline.append(self.__ins(lambda x: list(x), TransformType.MAP, [], {}))
+
+        return pipeline
+
     def apply(self, data):
         r = data
-        for tp in self._pipeline:
+        for tp in self.__check_pipeline():
             r = tp.apply(r)
 
         if len(self._sinks) > 0:
