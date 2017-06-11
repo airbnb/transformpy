@@ -1,3 +1,7 @@
+from itertools import chain
+
+import six
+
 from ..base import TransformPipe, TransformType, SourcePipe, SinkPipe
 
 __all__ = ['SimpleClusteringPipe', 'RangeClusteringPipe']
@@ -5,24 +9,43 @@ __all__ = ['SimpleClusteringPipe', 'RangeClusteringPipe']
 
 class SimpleClusteringPipe(TransformPipe):
 
-    def init(self, field, cluster_on=lambda x, y: x == y):
-        self.field = field
-        self.cluster_on = cluster_on
-        self.seen_groups = {}
+    def init(self, feature, when=lambda x, y: x == y):
+        self.feature = feature
+        self.is_peer = when
 
     def apply(self, data):
-        cur_group = None
-        cur_data = []
-        for row in data:
-            if row[self.field] != cur_group:
-                if cur_group is not None and not self.cluster_on(cur_group, row[self.field]):
-                    yield cur_data
-                cur_data = []
-                cur_group = row[self.field]
-                assert cur_group not in self.seen_groups, "SimpleClusteringPipe assumes that data is sorted by key. %s=%s was out of order (followed %s)." % (self.field, cur_group, last)
-                self.seen_groups[cur_group] = True
-            cur_data.append(row)
-        yield cur_data
+        data = iter(data)
+        cur_group = [None]
+        seen_groups = {}
+
+        next_generator = [None]
+
+        def get_group(row):
+            if isinstance(self.feature, six.string_types):
+                return row[self.feature]
+            return self.feature(row)
+
+        def cluster_generator(data):
+            for row in data:
+                if cur_group[0] is None:
+                    cur_group[0] = get_group(row)
+                    seen_groups[get_group(row)] = True
+                if get_group(row) != cur_group[0]:
+                    assert get_group(row) not in seen_groups, "SimpleClusteringPipe assumes that data is pre-ordered such that elements of the same cluster are next to one another. In this case, %s has already been seen." % (get_group(row))
+                    seen_groups[get_group(row)] = True
+                    if cur_group[0] is not None and not self.is_peer(cur_group[0], get_group(row)):
+                        next_generator[0] = cluster_generator(chain([row], data))
+                        cur_group[0] = get_group(row)
+                        return
+                yield row
+            next_generator[0] = None
+
+        next_generator[0] = cluster_generator(data)
+
+        while next_generator[0] is not None:
+            ng = next_generator[0]
+            next_generator[0] = None
+            yield ng
 
     @property
     def type(self):
