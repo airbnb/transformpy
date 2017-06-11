@@ -65,6 +65,9 @@ class Transform(object):
     def output(self, outputter, *args, **kwargs):
         return self.__ins_add(self._sinks, outputter, TransformType.SINK, args, kwargs)
 
+    def sort(self, **kwargs):
+        return self.__ins_add(self._pipeline, SortPipe, TransformType.SORT, (), kwargs)
+
     def apply(self, data):
         r = data
         for tp in self._pipeline:
@@ -88,6 +91,7 @@ class TransformType(object):
     NESTED = 'nested'
     FANOUT = 'fanout'
     FANIN = 'fanin'
+    SORT = 'sort'
 
 
 class TransformPipe(with_metaclass(ABCMeta, object)):
@@ -228,6 +232,20 @@ class FanOutPipe(TransformPipe):
     @property
     def type(self):
         return TransformType.FANOUT
+
+
+class SortPipe(TransformPipe):
+
+    def init(self, key = None, reverse = False):
+        self.key = key
+        self.reverse = reverse
+
+    def apply(self, data):
+        return sorted(data, key=self.key, reverse=self.reverse)
+
+    @property
+    def type(self):
+        return TransformType.SORT
 
 
 class NoOpPipe(TransformPipe):
