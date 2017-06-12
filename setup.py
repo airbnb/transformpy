@@ -1,4 +1,5 @@
 import os
+
 from setuptools import setup
 
 description = '''
@@ -15,12 +16,12 @@ but changes should be small if any to the current version.
 '''
 
 setup(
-    name = "transformpy",
-    version = "0.2",
-    author = "Matthew Wardrop",
-    author_email = "matthew.wardrop@airbnb.com",
-    description = ("A general purpose python ETL/pipeline utility library, for use especially with Hive Streaming."),
-    keywords = "pipeline transform hive",
+    name="transformpy",
+    version="0.3.0",
+    author="Matthew Wardrop",
+    author_email="matthew.wardrop@airbnb.com",
+    description="A general purpose python ETL/pipeline utility library, for use especially with Hive Streaming.",
+    keywords="pipeline transform hive",
     packages=['transformpy', 'transformpy.pipes'],
     install_requires=[
         'future',

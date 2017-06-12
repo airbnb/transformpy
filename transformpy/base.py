@@ -6,10 +6,11 @@ import inspect
 from abc import ABCMeta, abstractproperty, abstractmethod
 from itertools import tee
 
-
-__all__ = ['Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
-           'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
-           'UnnestPipe', 'FanOutPipe', 'NoOpPipe']
+__all__ = [
+    'Transform', 'TransformType', 'TransformPipe', 'SourcePipe', 'SinkPipe',
+    'TeePipe', 'FunctionWrapperPipe', 'FunctionWrapperSinkPipe', 'NestedPipe',
+    'UnnestPipe', 'FanOutPipe', 'NoOpPipe'
+]
 
 
 class Transform(object):
@@ -83,6 +84,7 @@ class Transform(object):
               same explicity mapping is done to ensure sensible output from the
               transform pipe.
         '''
+
         def pairwise(iterable):
             "s -> (s0,s1), (s1,s2), (s2, s3), ..."
             a, b = tee(iterable)
@@ -270,7 +272,7 @@ class FanOutPipe(TransformPipe):
 
 class SortPipe(TransformPipe):
 
-    def init(self, key = None, reverse = False):
+    def init(self, key=None, reverse=False):
         self.key = key
         self.reverse = reverse
 

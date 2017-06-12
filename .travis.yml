@@ -1,0 +1,41 @@
+language: python
+python:
+  - "2.7"
+  - "3.4"
+
+before_install:
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+  # Replace dep1 dep2 ... with your dependencies
+  - conda install psutil
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pandas future
+  - source activate test-environment
+install:
+  - pip install pycodestyle .
+
+script:
+  - "pycodestyle --ignore=E501,E712,E722,W503 transformpy"
+
+# Deploy to pypi automatically from tagged releases on the stable branch
+deploy:
+  provider: pypi
+  user: mister.wardrop
+  password:
+    secure: "DhXeOH2NWPg3xOvgdeyrPJAADl0TdckoEqyvLvPpXW/mZPHVpZwxaEDN/JKJS/Rho43mRvEWQrsFD2DRsY1GDe6GeF89iqGN89pPRLTnfct638IFz8hUbGfblGhOu4gCVxJzlocboqq6aI4llc12J7eOUjUwSoOtSx/WF+F8mnh5JPwF+MbUKyzvjUC8Ya0pO9uMd9bLyEg5egsrUZ6s+uX33XFHwLBO/ZQqmi2PanN3MYLpZ8Nudp6ab3AKBIV2i7I/gDIihVWNv8W8iwUlUWnaWQbMpE+gv1om+nZlqjXtteG2Ky4++WA8JPpUBslOntlpwbztb6bYKdaXk03nsA7GD8RKmzCcPdZDWLCMln1A/6diz+1V+wUqLP9NaShy+A87wI5+Etm4p0aQa23Co26pN68dVJafbqve1UPSgpAz+zX8e9i7v+Y8Kp3Hh6ZJ+1dQ4jz3MN8sXpOcwCt0agGqgL74guxwhhO/0wySJZaDy/1S6HA8/LZpdS/5lEIbsLdmntw+7ebCRov8fvWgFJZA5OJ713GujwNLfU0c4O3HbfLHrV0iFLwGak3iyCjMr/IyLiVRejF/KTxVqiMT67cNo6w9POuXwFEZTBRdeDLheiA3NrwMxpKqM3N/rO3f3H3uCwL1q3Ltbl9IlbH/CtjoTjXNdmbuO+8LHEA25Dc="
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: airbnb/transformpy
+    condition: $TRAVIS_PYTHON_VERSION = "3.4"

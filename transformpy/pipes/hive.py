@@ -27,8 +27,13 @@ class HiveToDictInput(SourcePipe):
                 self.fields.append(field)
 
     def apply(self, data):
-        for row in csv.DictReader(data, delimiter='\t', doublequote=False, fieldnames=self.fields):
-            yield {k: None if v == r'\N' else self.schema.get(k, lambda x: x)(v) for k, v in row.items()}
+        for row in csv.DictReader(
+                data, delimiter='\t', doublequote=False,
+                fieldnames=self.fields):
+            yield {
+                k: None if v == r'\N' else self.schema.get(k, lambda x: x)(v)
+                for k, v in row.items()
+            }
 
 
 class DictToHiveOutput(SinkPipe):
