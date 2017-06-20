@@ -17,7 +17,7 @@ but changes should be small if any to the current version.
 
 setup(
     name="transformpy",
-    version="0.3.1",
+    version="0.3.2",
     author="Matthew Wardrop",
     author_email="matthew.wardrop@airbnb.com",
     description="A general purpose python ETL/pipeline utility library, for use especially with Hive Streaming.",
