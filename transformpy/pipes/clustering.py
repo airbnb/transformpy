@@ -15,10 +15,12 @@ class SimpleClusteringPipe(TransformPipe):
 
     def apply(self, data):
         data = iter(data)
-        cur_group = [None]
-        seen_groups = {}
 
-        next_generator = [None]
+        class state:
+            current_group = None
+            seen_groups = {}
+            next_generator = None
+            first_row = None
 
         def get_group(row):
             if isinstance(self.feature, six.string_types):
@@ -26,25 +28,27 @@ class SimpleClusteringPipe(TransformPipe):
             return self.feature(row)
 
         def cluster_generator(data):
+            if state.first_row is not None:
+                yield state.first_row
             for row in data:
-                if cur_group[0] is None:
-                    cur_group[0] = get_group(row)
-                    seen_groups[get_group(row)] = True
-                if get_group(row) != cur_group[0]:
-                    assert get_group(row) not in seen_groups, "SimpleClusteringPipe assumes that data is pre-ordered such that elements of the same cluster are next to one another. In this case, %s has already been seen." % (get_group(row))
-                    seen_groups[get_group(row)] = True
-                    if cur_group[0] is not None and not self.is_peer(cur_group[0], get_group(row)):
-                        next_generator[0] = cluster_generator(chain([row], data))
-                        cur_group[0] = get_group(row)
+                if state.current_group is None:
+                    state.current_group = get_group(row)
+                    state.seen_groups[get_group(row)] = True
+                if get_group(row) != state.current_group:
+                    assert get_group(row) not in state.seen_groups, "SimpleClusteringPipe assumes that data is pre-ordered such that elements of the same cluster are next to one another. In this case, %s has already been seen." % (get_group(row))
+                    state.seen_groups[get_group(row)] = True
+                    if state.current_group is not None and not self.is_peer(state.current_group, get_group(row)):
+                        state.first_row = row
+                        state.current_group = get_group(row)
+                        state.next_generator = cluster_generator(data)
                         return
                 yield row
-            next_generator[0] = None
+            state.next_generator = None
 
-        next_generator[0] = cluster_generator(data)
+        state.next_generator = cluster_generator(data)
 
-        while next_generator[0] is not None:
-            ng = next_generator[0]
-            next_generator[0] = None
+        while state.next_generator is not None:
+            ng = state.next_generator
             yield ng
 
     @property
